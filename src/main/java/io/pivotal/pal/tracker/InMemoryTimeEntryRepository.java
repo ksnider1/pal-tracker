@@ -11,8 +11,12 @@ import java.util.Map;
  */
 public class InMemoryTimeEntryRepository implements TimeEntryRepository {
     private Map<Long, TimeEntry> timeEntries = new HashMap<>();
+    private long sequencer = 1;
+
 
     public TimeEntry create(TimeEntry entry){
+        entry.setId(sequencer);
+        sequencer++;
         timeEntries.put(entry.getId(), entry);
         return entry;
     }

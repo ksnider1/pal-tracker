@@ -10,7 +10,6 @@ import java.time.LocalDate;
 public class TimeEntry {
 
 
-    private static long idCount = 1;
     private long id;
     private long projectId;
     private long userId;
@@ -89,8 +88,6 @@ public class TimeEntry {
         this.projectId = projectId;
         this.date = date;
         this.hours = hours;
-        this.id = idCount;
-        idCount++;
 
 
     }
@@ -130,7 +127,8 @@ public class TimeEntry {
                 '}';
     }
 
-    public static void resetCounter() {
-        idCount = 1;
+
+    public void setId(long id) {
+        this.id = id;
     }
 }
