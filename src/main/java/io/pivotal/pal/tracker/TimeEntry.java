@@ -10,11 +10,44 @@ import java.time.LocalDate;
 public class TimeEntry {
 
 
+    private static long idCount = 1;
     private long id;
     private long projectId;
     private long userId;
     private LocalDate date;
     private int hours;
+
+    public long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(long projectId) {
+        this.projectId = projectId;
+    }
+
+    public long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public int getHours() {
+        return hours;
+    }
+
+    public void setHours(int hours) {
+        this.hours = hours;
+    }
 
     public TimeEntry() {
 
@@ -22,7 +55,7 @@ public class TimeEntry {
 
 
     public long getId(){
-        return this.id;
+        return id;
     }
 
     public TimeEntry(
@@ -45,19 +78,59 @@ public class TimeEntry {
 
     public TimeEntry(
 
-            @Value("${ID:NOT SET}") long id,
-            @Value("${PROJECT_ID:NOT SET}") long projectId,
+            @Value("${ID:NOT SET}") long projectId,
+            @Value("${PROJECT_ID:NOT SET}") long userId,
             @Value("${DATE:NOT SET}") LocalDate date,
             @Value("${HOURS:NOT SET}") int hours
 
     ){
 
-        this.id = id;
+        this.userId = userId;
         this.projectId = projectId;
         this.date = date;
         this.hours = hours;
+        this.id = idCount;
+        idCount++;
+
 
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
+        TimeEntry timeEntry = (TimeEntry) o;
+
+        if (id != timeEntry.id) return false;
+        if (projectId != timeEntry.projectId) return false;
+        if (userId != timeEntry.userId) return false;
+        if (hours != timeEntry.hours) return false;
+        return date != null ? date.equals(timeEntry.date) : timeEntry.date == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + (int) (projectId ^ (projectId >>> 32));
+        result = 31 * result + (int) (userId ^ (userId >>> 32));
+        result = 31 * result + (date != null ? date.hashCode() : 0);
+        result = 31 * result + hours;
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "TimeEntry{" +
+                "id=" + id +
+                ", projectId=" + projectId +
+                ", userId=" + userId +
+                ", date=" + date +
+                ", hours=" + hours +
+                '}';
+    }
+
+    public static void resetCounter() {
+        idCount = 1;
+    }
 }

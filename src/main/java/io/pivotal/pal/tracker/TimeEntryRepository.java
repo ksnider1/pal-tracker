@@ -8,11 +8,7 @@ import java.util.List;
 public interface TimeEntryRepository {
     TimeEntry create(TimeEntry any);
     TimeEntry find(long id);
-
-
     List<TimeEntry> list();
-
     TimeEntry update(long l, TimeEntry expected);
-
-    TimeEntry delete(long l);
+    void delete(long l);
 }

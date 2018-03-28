@@ -2,6 +2,7 @@ package test.pivotal.pal.tracker;
 
 import io.pivotal.pal.tracker.InMemoryTimeEntryRepository;
 import io.pivotal.pal.tracker.TimeEntry;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDate;
@@ -11,6 +12,10 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class InMemoryTimeEntryRepositoryTest {
+    @Before
+    public void setup() {
+        TimeEntry.resetCounter();
+    }
     @Test
     public void create() throws Exception {
         InMemoryTimeEntryRepository repo = new InMemoryTimeEntryRepository();
@@ -20,6 +25,7 @@ public class InMemoryTimeEntryRepositoryTest {
         assertThat(createdTimeEntry).isEqualTo(expected);
 
         TimeEntry readEntry = repo.find(createdTimeEntry.getId());
+
         assertThat(readEntry).isEqualTo(expected);
     }
 
@@ -59,7 +65,7 @@ public class InMemoryTimeEntryRepositoryTest {
         assertThat(updatedEntry).isEqualTo(expected);
         assertThat(repo.find(created.getId())).isEqualTo(expected);
     }
-
+//
     @Test
     public void delete() throws Exception {
         InMemoryTimeEntryRepository repo = new InMemoryTimeEntryRepository();
