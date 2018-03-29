@@ -85,6 +85,8 @@ public class JdbcTimeEntryRepositoryTest {
 
     @Test
     public void listFindsAllTimeEntries() throws Exception {
+        assertThat(subject.list().size() == 0);
+
         jdbcTemplate.execute(
             "INSERT INTO time_entries (id, project_id, user_id, date, hours) " +
                 "VALUES (999, 123, 321, '2017-01-09', 8), (888, 456, 678, '2017-01-08', 9)"

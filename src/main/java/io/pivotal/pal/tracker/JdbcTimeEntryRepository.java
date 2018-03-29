@@ -1,43 +1,41 @@
 package io.pivotal.pal.tracker;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import javax.sql.DataSource;
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
-/**
- * Created by accenturelabs on 3/29/18.
- */
 public class JdbcTimeEntryRepository implements TimeEntryRepository {
-    private JdbcTemplate template;
+
+    private final JdbcTemplate jdbcTemplate;
 
     public JdbcTimeEntryRepository(DataSource dataSource) {
-        this.template = new JdbcTemplate(dataSource);
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     @Override
-    public TimeEntry create(TimeEntry any) {
+    public TimeEntry create(TimeEntry entry) {
         KeyHolder generatedKeyHolder = new GeneratedKeyHolder();
 
-        template.update(connection -> {
+        jdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement(
                     "INSERT INTO time_entries (project_id, user_id, date, hours) " +
                             "VALUES (?, ?, ?, ?)",
                     RETURN_GENERATED_KEYS
             );
 
-            statement.setLong(1, any.getProjectId());
-            statement.setLong(2, any.getUserId());
-            statement.setDate(3, Date.valueOf(any.getDate()));
-            statement.setInt(4, any.getHours());
+            statement.setLong(1, entry.getProjectId());
+            statement.setLong(2, entry.getUserId());
+            statement.setDate(3, Date.valueOf(entry.getDate()));
+            statement.setInt(4, entry.getHours());
 
             return statement;
         }, generatedKeyHolder);
@@ -46,46 +44,45 @@ public class JdbcTimeEntryRepository implements TimeEntryRepository {
     }
 
     @Override
-    public TimeEntry find(long id) {
-        String sql = "SELECT * FROM time_entries WHERE id = ?";
-        SqlRowSet results = template.queryForRowSet(sql, id);
-        if (results.next()){
-            TimeEntry entry = mapRowToEntry(results);
-            return entry;
-        }
-        return null;
+    public TimeEntry find(Long id) {
+        return jdbcTemplate.query(
+                "SELECT id, project_id, user_id, date, hours FROM time_entries WHERE id = ?",
+                new Object[]{id},
+                extractor);
     }
 
     @Override
     public List<TimeEntry> list() {
-        String sql = "SELECT * FROM time_entries";
-        SqlRowSet results = template.queryForRowSet(sql);
-        List<TimeEntry> entries = new ArrayList<>();
-        while (results.next()) {
-            entries.add(mapRowToEntry(results));
-        }
-        return entries;
+        return jdbcTemplate.query("SELECT id, project_id, user_id, date, hours FROM time_entries", mapper);
     }
 
     @Override
-    public TimeEntry update(long id, TimeEntry entry) {
-        String sql = "UPDATE time_entries SET user_id = ?, project_id = ?, date = ?, hours = ? WHERE id = ?";
-        template.update(sql, entry.getUserId(), entry.getProjectId(), entry.getDate(), entry.getHours(), id);
+    public TimeEntry update(Long id, TimeEntry entry) {
+        jdbcTemplate.update("UPDATE time_entries " +
+                        "SET project_id = ?, user_id = ?, date = ?,  hours = ? " +
+                        "WHERE id = ?",
+                entry.getProjectId(),
+                entry.getUserId(),
+                Date.valueOf(entry.getDate()),
+                entry.getHours(),
+                id);
+
         return find(id);
     }
+
     @Override
-    public void delete(long id) {
-        String sql = "DELETE FROM time_entries WHERE id = ?";
-        template.update(sql, id);
+    public void delete(Long id) {
+        jdbcTemplate.update("DELETE FROM time_entries WHERE id = ?", id);
     }
 
-    private TimeEntry mapRowToEntry(SqlRowSet results) {
-        TimeEntry entry = new TimeEntry();
-        entry.setId(results.getLong("id"));
-        entry.setUserId(results.getLong("user_id"));
-        entry.setProjectId(results.getLong("project_id"));
-        entry.setDate(results.getDate("date").toLocalDate());
-        entry.setHours(results.getInt("hours"));
-        return entry;
-    }
+    private final RowMapper<TimeEntry> mapper = (rs, rowNum) -> new TimeEntry(
+            rs.getLong("id"),
+            rs.getLong("project_id"),
+            rs.getLong("user_id"),
+            rs.getDate("date").toLocalDate(),
+            rs.getInt("hours")
+    );
+
+    private final ResultSetExtractor<TimeEntry> extractor =
+            (rs) -> rs.next() ? mapper.mapRow(rs, 1) : null;
 }
