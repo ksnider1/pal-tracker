@@ -9,9 +9,7 @@ import javax.sql.DataSource;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
@@ -20,8 +18,6 @@ import static java.sql.Statement.RETURN_GENERATED_KEYS;
  */
 public class JdbcTimeEntryRepository implements TimeEntryRepository {
     private JdbcTemplate template;
-    private Map<Long, TimeEntry> entries = new HashMap<>();
-    private long sequencer = 1;
 
     public JdbcTimeEntryRepository(DataSource dataSource) {
         this.template = new JdbcTemplate(dataSource);
@@ -60,16 +56,6 @@ public class JdbcTimeEntryRepository implements TimeEntryRepository {
         return null;
     }
 
-    private TimeEntry mapRowToEntry(SqlRowSet results) {
-        TimeEntry entry = new TimeEntry();
-        entry.setId(results.getLong("id"));
-        entry.setUserId(results.getLong("user_id"));
-        entry.setProjectId(results.getLong("project_id"));
-        entry.setDate(results.getDate("date").toLocalDate());
-        entry.setHours(results.getInt("hours"));
-        return entry;
-    }
-
     @Override
     public List<TimeEntry> list() {
         String sql = "SELECT * FROM time_entries";
@@ -80,17 +66,26 @@ public class JdbcTimeEntryRepository implements TimeEntryRepository {
         }
         return entries;
     }
-    @Override
-    public TimeEntry update(long id, TimeEntry expected) {
-        String sql = "UPDATE time_entries SET user_id = ?, project_id = ?, date = ?, hours = ? WHERE id = ?";
-        template.update(sql, expected.getUserId(), expected.getProjectId(), expected.getDate(), expected.getHours(), id);
 
+    @Override
+    public TimeEntry update(long id, TimeEntry entry) {
+        String sql = "UPDATE time_entries SET user_id = ?, project_id = ?, date = ?, hours = ? WHERE id = ?";
+        template.update(sql, entry.getUserId(), entry.getProjectId(), entry.getDate(), entry.getHours(), id);
         return find(id);
     }
-
     @Override
-    public void delete(long l) {
+    public void delete(long id) {
         String sql = "DELETE FROM time_entries WHERE id = ?";
-        template.update(sql, l);
+        template.update(sql, id);
+    }
+
+    private TimeEntry mapRowToEntry(SqlRowSet results) {
+        TimeEntry entry = new TimeEntry();
+        entry.setId(results.getLong("id"));
+        entry.setUserId(results.getLong("user_id"));
+        entry.setProjectId(results.getLong("project_id"));
+        entry.setDate(results.getDate("date").toLocalDate());
+        entry.setHours(results.getInt("hours"));
+        return entry;
     }
 }

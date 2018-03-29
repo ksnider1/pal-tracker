@@ -6,9 +6,9 @@ import java.util.List;
  * Created by accenturelabs on 3/27/18.
  */
 public interface TimeEntryRepository {
-    TimeEntry create(TimeEntry any);
+    TimeEntry create(TimeEntry entry);
     TimeEntry find(long id);
     List<TimeEntry> list();
-    TimeEntry update(long l, TimeEntry expected);
+    TimeEntry update(long l, TimeEntry entry);
     void delete(long l);
 }
